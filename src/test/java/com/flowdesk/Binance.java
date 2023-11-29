@@ -1,4 +1,4 @@
-package com.example.flowdesk;
+package com.flowdesk;
 
 import java.io.IOException;
 import java.net.URI;

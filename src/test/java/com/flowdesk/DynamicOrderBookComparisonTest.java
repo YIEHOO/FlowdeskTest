@@ -1,4 +1,4 @@
-package com.example.flowdesk;
+package com.flowdesk;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -20,7 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.example.flowdesk.Binance.getOrderBook;
+import static com.flowdesk.Binance.getOrderBook;
 
 public class DynamicOrderBookComparisonTest {
 
