@@ -9,6 +9,7 @@ This is a project put in place for a challenge.
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
 - [Tests](#tests)
+- [Reports](#reports)
 
 ## About
 
@@ -51,3 +52,7 @@ List of software or tools that need to be installed before setting up the projec
     ```bash
     mvn test
     ```
+
+### Reports
+
+After each run a report of type HTML under the name of extent-report is being generated to list the results of the assertions. Note that this report could be consulted as well during the execution to see live the progress of the check being done.
