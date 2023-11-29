@@ -1,4 +1,4 @@
-package com.flowdesk;
+package flowdesk;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,7 +17,7 @@ import org.json.JSONObject;
 public class Binance {
 
     // A map to store the local order book
-    private static Map<Double, Double> orderBook = new ConcurrentHashMap<>();
+    private static final Map<Double, Double> orderBook = new ConcurrentHashMap<>();
 
     // A variable to store the last update id from the snapshot
     private static long lastUpdateId = 0;
@@ -28,7 +28,7 @@ public class Binance {
     // A method to get a depth snapshot from the API
     public static void getDepthSnapshot() {
         try {
-            // Create a HTTP client and send a GET request
+            // Create an HTTP client and send a GET request
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.binance.com/api/v3/depth?symbol=BNBBTC&limit=5000"))
@@ -61,10 +61,7 @@ public class Binance {
 
             // Print the local order book size
             System.out.println("Order book size: " + orderBook.size());
-
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
+        } catch (JSONException | IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
@@ -145,11 +142,8 @@ public class Binance {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             Session session = container.connectToServer(Binance.class, URI.create("wss://stream.binance.com:9443/ws/bnbbtc@depth"));
             session.close();
-
-        } catch (IOException | DeploymentException e) {
-            e.printStackTrace();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 

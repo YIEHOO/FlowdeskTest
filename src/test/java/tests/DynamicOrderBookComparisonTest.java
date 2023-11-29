@@ -1,11 +1,9 @@
-package com.flowdesk;
+package tests;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
@@ -15,12 +13,12 @@ import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import pages.BinancePage;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import static com.flowdesk.Binance.getOrderBook;
+import static flowdesk.Binance.getOrderBook;
 
 public class DynamicOrderBookComparisonTest {
 
@@ -49,10 +47,10 @@ public class DynamicOrderBookComparisonTest {
         flushThread.setDaemon(true);
         flushThread.start();
 
-        // Use WebDriverManager to setup the WebDriver dynamically
+        // Use WebDriverManager to set up the WebDriver dynamically
         WebDriverManager.edgedriver().setup();
         driver = new EdgeDriver();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
         // Initialize BinancePage
         binancePage = new BinancePage(driver);
@@ -69,11 +67,6 @@ public class DynamicOrderBookComparisonTest {
             try {
                 synchronized (DynamicOrderBookComparisonTest.class) {
                     expectedOrderBook = getOrderBook();
-                }
-
-                if (expectedOrderBook == null) {
-                    test.log(Status.FAIL, "No order book available");
-                    break;
                 }
 
                 compareOrderBooks(binancePage, expectedOrderBook, "ask");
@@ -97,16 +90,15 @@ public class DynamicOrderBookComparisonTest {
 
             int totalEntries = orderBookEntries.size();
             int matchingEntries = 0;
-            for (int i = 0; i < orderBookEntries.size(); i++) {
+            for (WebElement orderBookEntry : orderBookEntries) {
                 // Compare the order books
                 boolean match = false;
-                WebElement entry = orderBookEntries.get(i);
                 // Use the appropriate CSS selector based on the type (ask or bid)
                 String priceSelector = type.equals("ask") ? ".ask-light" : ".bid-light";
-                double price = Double.parseDouble(entry.findElement(By.cssSelector(priceSelector)).getText());
-                double quantity = Double.parseDouble(entry.findElement(By.cssSelector(".text:nth-child(2)")).getText());
-                for (int j = 0; j < expectedOrderBook.length; j++) {
-                    if (price == Double.parseDouble(expectedOrderBook[j][0]) && quantity == Double.parseDouble(expectedOrderBook[j][1])) {
+                double price = Double.parseDouble(orderBookEntry.findElement(By.cssSelector(priceSelector)).getText());
+                double quantity = Double.parseDouble(orderBookEntry.findElement(By.cssSelector(".text:nth-child(2)")).getText());
+                for (String[] strings : expectedOrderBook) {
+                    if (price == Double.parseDouble(strings[0]) && quantity == Double.parseDouble(strings[1])) {
                         match = true;
                         break;
                     }
@@ -120,10 +112,10 @@ public class DynamicOrderBookComparisonTest {
             System.out.println("Matching "+type+"s percentage: " + matchingPercentage + "%");
             if (matchingPercentage<70){
                 test.log(Status.FAIL, "Too many " + type + "s not matching");
-                test.log(Status.INFO, String.valueOf(matchingPercentage + "%"));
+                test.log(Status.INFO, matchingPercentage + "%");
             } else {
                 test.log(Status.PASS, type + "s matching!");
-                test.log(Status.INFO, String.valueOf(matchingPercentage + "%"));
+                test.log(Status.INFO, matchingPercentage + "%");
             }
 
         } catch (Exception e) {
@@ -131,19 +123,4 @@ public class DynamicOrderBookComparisonTest {
         }
     }
 
-    private static void printOrderBook(String[][] orderBook) {
-        for (String[] entry : orderBook) {
-            System.out.println("Price: " + entry[0] + ", Quantity: " + entry[1]);
-        }
-    }
-
-    private static void printOrderBookFromPage(List<WebElement> orderBookEntries, String type) {
-        for (WebElement entry : orderBookEntries) {
-            // Use the appropriate CSS selector based on the type (ask or bid)
-            String priceSelector = type.equals("ask") ? ".ask-light" : ".bid-light";
-            String price = entry.findElement(By.cssSelector(priceSelector)).getText();
-            String quantity = entry.findElement(By.cssSelector(".text:nth-child(2)")).getText();
-            System.out.println("Price: " + price + ", Quantity: " + quantity);
-        }
-    }
 }
