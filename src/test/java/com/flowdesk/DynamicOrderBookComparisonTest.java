@@ -27,6 +27,7 @@ public class DynamicOrderBookComparisonTest {
     private static ExtentReports extent;
     private static ExtentTest test;
     private WebDriver driver;
+    private BinancePage binancePage;
 
     @BeforeClass
     public void setUp() {
@@ -52,12 +53,15 @@ public class DynamicOrderBookComparisonTest {
         WebDriverManager.edgedriver().setup();
         driver = new EdgeDriver();
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+        // Initialize BinancePage
+        binancePage = new BinancePage(driver);
     }
 
     @Test
     public void dynamicOrderBookComparisonTest() {
         String pageUrl = "https://www.binance.com/fr/trade/BNB_BTC?type=spot";
-        driver.get(pageUrl);
+        binancePage.navigateTo(pageUrl);
         String[][] expectedOrderBook;
         int i = 0;
 
@@ -72,8 +76,8 @@ public class DynamicOrderBookComparisonTest {
                     break;
                 }
 
-                compareOrderBooks(driver, expectedOrderBook, "ask");
-                compareOrderBooks(driver, expectedOrderBook, "bid");
+                compareOrderBooks(binancePage, expectedOrderBook, "ask");
+                compareOrderBooks(binancePage, expectedOrderBook, "bid");
                 i++;
             } catch (Exception e) {
                 test.log(Status.FAIL, "An error occurred: " + e.getMessage());
@@ -86,19 +90,11 @@ public class DynamicOrderBookComparisonTest {
         driver.quit();
     }
 
-    private static void compareOrderBooks(WebDriver driver, String[][] expectedOrderBook, String type) {
+    private static void compareOrderBooks(BinancePage binancePage, String[][] expectedOrderBook, String type) {
         try {
-            // Use WebDriverWait to wait for the order book container to be present
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement orderBookContainer;
-            if (type.equals("ask")) {
-                orderBookContainer = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("(//div[@class='orderbook-list-container'])[1]")));
-            } else {
-                orderBookContainer = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("(//div[@class='orderbook-list-container'])[2]")));
-            }
+            WebElement orderBookContainer = binancePage.getOrderBookContainer(type);
+            List<WebElement> orderBookEntries = binancePage.getOrderBookEntries(orderBookContainer);
 
-            // Extract the order book from the page
-            List<WebElement> orderBookEntries = orderBookContainer.findElements(By.className("row-content"));
             int totalEntries = orderBookEntries.size();
             int matchingEntries = 0;
             for (int i = 0; i < orderBookEntries.size(); i++) {
